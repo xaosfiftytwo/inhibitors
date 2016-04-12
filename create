@@ -1,0 +1,40 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+
+import os, sys
+display = os.environ.get('DISPLAY') != None
+
+import subprocess
+
+def can_do_it(action):
+    # There is no 'CanLogout' method
+    if action == "Logout":
+        return "yes"
+    if action == "Hibernate":
+        canDoItErrorMessages["na"] = """Action is not available.
+
+Probable cause is inadequate swap space."""
+    actionMethod = "Can{}".format(action)
+    response = send_dbus(actionMethod)
+    if response:
+        lines = response.split("\n")
+        if lines:
+            words = lines[1].split("\"")
+            if words:
+                if words[1]:
+                    return words[1]
+
+def send_dbus(method):
+    arguments = ["dbus-send", "--print-reply", "--system", "--dest=org.freedesktop.login1",
+                 "/org/freedesktop/login1", "org.freedesktop.login1.Manager.{}".format(method)]
+    if method[:3] != "Can":
+        arguments.append("boolean:true")
+    response = subprocess.check_output(arguments)
+    return response
+
+def main(argv):
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+    sys.exit(0)
