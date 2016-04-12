@@ -25,16 +25,30 @@ Probable cause is inadequate swap space."""
                 if words[1]:
                     return words[1]
 
-def send_dbus(method):
-    arguments = ["dbus-send", "--print-reply", "--system", "--dest=org.freedesktop.login1",
-                 "/org/freedesktop/login1", "org.freedesktop.login1.Manager.{}".format(method)]
-    if method[:3] != "Can":
-        arguments.append("boolean:true")
+def Inhibit(what, who, why, mode):
+    result = send_dbus("Inhibit", what, who, why, mode)
+    return result
+                
+def send_dbus(method, what, who, why, mode):
+    arguments = ["dbus-send",
+                 "--print-reply",
+                 "--system",
+                 "--dest=org.freedesktop.login1",
+                 "/org/freedesktop/login1",
+                 "org.freedesktop.login1.Manager.{}".format(method),
+                 "string:shutdown:idle",
+                 "string:Package Manager",
+                 "string:Upgrade in progress ...",
+                 "string:block" ]
     response = subprocess.check_output(arguments)
     return response
 
 def main(argv):
-
+    fd = Inhibit("shutdown:idle",
+                 "Package Manager",
+                 "Upgrade in progress...",
+                 "block")
+    
 if __name__ == "__main__":
     main(sys.argv[1:])
     sys.exit(0)
